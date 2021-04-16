@@ -124,9 +124,9 @@ Found.prototype = {
         },
 
   findQuickMatchs : function(category , lat , long , radius , callback)  {
-    let sql = 'SELECT * FROM founds ';
+    let sql = 'SELECT * FROM founds where category = ';
     self = this ;
-    pool.query(sql , [] , function(err , ret) {
+    pool.query(sql , category , function(err , ret) {
       if(err) console.log(err);
       else {
         let matches_ = [] ;
