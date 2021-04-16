@@ -8,8 +8,8 @@
     "start": "nodemon app"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Amine Dakhli",
+  "license": "AGPL",
   "dependencies": {
     "bcrypt": "^5.0.0",
     "crypto": "^1.0.1",
