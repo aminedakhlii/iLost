@@ -103,7 +103,7 @@ router.get('/setAdmin/:id', (req , res ) => {
   }
 });
 
-router.get('/setAdmin/:id', (req , res ) => {
+router.get('/display', (req , res ) => {
   if(req.session.user) {
     user.find(req.session.user.id , (ret)=> {
       if(ret) res.send(ret) ;
