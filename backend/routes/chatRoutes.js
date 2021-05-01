@@ -74,9 +74,9 @@ router.get('/updateConversation/:room' , async (req , res) => {
         res.send('0') ;
       else res.send('1') ;
       return ;
-    }
-
-    res.send('1');
+    } else if(lastConversationLookup && !lastConversationUpdate)
+        res.send('0');
+    else res.send('1');
 
   } else res.send(403) ;
 });
@@ -114,12 +114,12 @@ router.get('/fetchmessages/:id/:lastMessage' , (req , res) =>{
   }
 });
 
-router.post('/uploadImage' ,  (req , res) => {
+router.post('/uploadImage/:room' ,  (req , res) => {
   if(req.session.user) {
-    console.log(req.body);
+    console.log(req.params.room);
     let m = new Message() ;
-    m.lastId(3 , function(ret) {
-      let upload = setStorage(3 , ret[0]['id']) ;
+    m.lastId(req.params.room , function(ret) {
+      let upload = setStorage(req.params.room , ret[0]['id']) ;
       upload(req , res ,  (err) => {
         console.log(err);
       });
