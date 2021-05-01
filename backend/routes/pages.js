@@ -103,6 +103,16 @@ router.get('/setAdmin/:id', (req , res ) => {
   }
 });
 
+router.get('/setAdmin/:id', (req , res ) => {
+  if(req.session.user) {
+    user.find(req.session.user.id , (ret)=> {
+      if(ret) res.send(ret) ;
+      else res.sendStatus(503);
+    })
+  }
+  else res.sendStatus(403);
+});
+
 router.post('/delete', (req, res, next) => {
     // Check if the session is exist
     if(req.session.user) {
