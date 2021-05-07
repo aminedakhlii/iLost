@@ -6,6 +6,7 @@ const MsgNotif = require('../core/msgNotif');
 
 
 user = new User() ;
+notif = new MsgNotif();
 
 router.get('/' , (req,res,next) => {
 
@@ -49,7 +50,6 @@ router.post('/login' , (req,res,next) => {
       console.log('logged ' + result.username);
       req.session.user = result;
       req.session.opp = 1;
-      let notif = new MsgNotif();
       notif.create(req.body.token,req.session.user.id,(ret)=> {
           if(ret) res.send({"id" : req.session.user.id}) ;
           else res.send(500);
@@ -130,10 +130,13 @@ router.post('/delete', (req, res, next) => {
 router.get('/loggout', (req, res, next) => {
     // Check if the session is exist
     if(req.session.user) {
-        // destroy the session and redirect the user to the index page.
-        req.session.destroy(function() {
-            console.log('disconnected');
-            res.redirect('/');
+        notif.delete(req.session.user.id,(ret)=> {
+          if(ret)
+            req.session.destroy(function() {
+                console.log('disconnected');
+                res.redirect('/');
+            });
+          else res.send(500);  
         });
     }
     else {
