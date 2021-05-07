@@ -3,7 +3,7 @@ const router = express.Router() ;
 const Room = require('../core/room');
 const User = require('../core/user');
 const Message = require('../core/message');
-const Notif = require('../core/notifs');
+const MsgNotif = require('../core/msgNotif');
 const redis = require("redis");
 const client = redis.createClient();
 const multer = require('multer') ;
@@ -133,7 +133,12 @@ router.post('/send' , (req , res) =>{
     let msg = new Message() ;
     msg.create(req.body.content , req.body.sender , req.body.room , req.body.withImage , function(msg){
       if(msg){
-        res.send(200);
+        let notif = new MsgNotif();
+        notif.notify(req.session.user.id,req.body.room,req.body.content, function(ret){
+          if(ret == 200) res.send(200);
+          else res.send(500);
+        });
+
       }
       else res.send(500) ;
     });
@@ -141,7 +146,7 @@ router.post('/send' , (req , res) =>{
   else res.send(403) ;
 });
 
-router.get('/listenForMsgs' , (req , res) => {
+/*router.get('/listenForMsgs' , (req , res) => {
   console.log('listening...');
   if(req.session.user){
     let notif = new Notif() ;
@@ -169,6 +174,6 @@ router.get('/markMsgRecieved/:id' , (req , res) => {
       });
     }
 });
-
+*/
 
 module.exports = router ;

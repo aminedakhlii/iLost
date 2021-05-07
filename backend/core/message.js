@@ -1,6 +1,6 @@
 const pool = require('./pool');
 const Room = require('./room')
-const Notif = require('./notifs')
+const MsgNotif = require('./msgNotif')
 const {promisify} = require('util') ;
 const redis = require("redis");
 const client = redis.createClient();
@@ -16,21 +16,19 @@ Message.prototype = {
 
       let sql = `INSERT INTO messages(content,sender,room,withImage) VALUES (?, ?, ?,?)`;
 
-      if(withImage == 'false') withImage = 0 ; else if(withImage == 'true') withImage = 1 ;  
+      if(withImage == 'false') withImage = 0 ; else if(withImage == 'true') withImage = 1 ;
 
       pool.query(sql, [content,sender,room,withImage], function(err, result) {
-          if(err) console.log(err);
+          if(err) {console.log(err); return ;}
           // return the last inserted id. if there is no error
           else {
           let room_ = new Room() ;
           room_.findById(room , async (ret) => {
             if(ret.user1 == sender){
-              let n = new Notif() ;
-              n.insertMessage(ret.user2,result.insertId,(ret) => callback(ret)) ;
+
             }
             else {
-              let n = new Notif() ;
-              n.insertMessage(ret.user1,result.insertId,(ret) => callback(ret)) ;
+
             }
             const conversationUpdateSet1 = await SET_ASYNC(
               'conversationUpdate' + ret.user1.toString() + '-' + ret.id,
@@ -54,6 +52,9 @@ Message.prototype = {
               new Date(),
               'EX', 1000000
             );
+
+            callback(result.insertId);
+
           });
         }
       });

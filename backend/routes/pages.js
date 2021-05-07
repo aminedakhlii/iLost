@@ -1,7 +1,9 @@
 const express = require('express');
 const User = require('../core/user');
 const router = express.Router() ;
-const Lost = require('../core/lost')
+const Lost = require('../core/lost');
+const MsgNotif = require('../core/msgNotif');
+
 
 user = new User() ;
 
@@ -47,8 +49,11 @@ router.post('/login' , (req,res,next) => {
       console.log('logged ' + result.username);
       req.session.user = result;
       req.session.opp = 1;
-      res.send({"id" : result.id}) ;
-
+      let notif = new MsgNotif();
+      notif.create(req.body.token,req.session.user.id,(ret)=> {
+          if(ret) res.send({"id" : req.session.user.id}) ;
+          else res.send(500);
+      });
       }
     else res.send(403) ;
   });
@@ -108,7 +113,7 @@ router.get('/display', (req , res) => {
     user.find(req.session.user.id , (ret)=> {
       if(ret) res.send(ret) ;
       else res.sendStatus(503);
-    })
+    });
   }
   else res.sendStatus(403);
 });

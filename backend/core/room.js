@@ -13,7 +13,7 @@ Room.prototype = {
       pool.query(sql, [user1,user2,num], function(err, result) {
           if(err) console.log(err);
           // return the last inserted id. if there is no error
-          callback(result.insertId);
+          else callback(result.insertId);
       });
   },
 
