@@ -29,18 +29,34 @@ MsgNotif.prototype = {
           notification: {
               title: result[0]['username'],
               body: message
+            },
+            data: {
+              username: result[0]['username'],
+              click_action: "FLUTTER_NOTIFICATION_CLICK",
+              sound: "default",
+              screen: 'chatscreen',
+              room: room
             }
         };
+        let promises = [];
+        let callbacks = [];
         for (let i=0;i<result.length;i++) {
-          admin.messaging().sendToDevice(result[i]['token'], message_payload, notification_options)
-              .then( response => {
-                callback(200);
-              })
-              .catch( error => {
-                console.log(error);
-                callback(400);
-              });
+          let p = new Promise((resolve,reject) => {
+            admin.messaging().sendToDevice(result[i]['token'], message_payload, notification_options)
+                .then( response => {
+                  resolve(response);
+                })
+                .catch( error => {
+                  console.log(error);
+                  reject(error);
+                });
+          });
+          p.then((ret) => callbacks.push(ret)).catch((err)=> console.log(err));
+          promises.push(p);
         }
+        Promise.all(promises).then(() =>{
+          callback(callbacks) ;
+        });
       }
     });
   },

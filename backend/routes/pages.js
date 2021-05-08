@@ -136,7 +136,7 @@ router.get('/loggout', (req, res, next) => {
                 console.log('disconnected');
                 res.redirect('/');
             });
-          else res.send(500);  
+          else res.send(500);
         });
     }
     else {
