@@ -85,6 +85,18 @@ Message.prototype = {
       }
       else callback(ret) ;
     });
+  },
+
+  lastMessage : function(roomId , callback) {
+    let sql = 'SELECT * FROM messages where room = ? ORDER BY id DESC LIMIT 1' ;
+    pool.query(sql , roomId, function(err , ret) {
+      console.log(this.sql);
+      if(err) console.log(err);
+      else if (ret.length == 0) {
+        callback([{'message' : -1}]);
+      }
+      else callback(ret) ;
+    });
   }
 
 }

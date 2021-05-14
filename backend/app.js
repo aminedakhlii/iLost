@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(express.static(__dirname + '/data'));
 app.use((req , res , next) => {
-  //console.log(req.url);
+  console.log(req.url);
   next();
 });
 
@@ -46,19 +46,48 @@ app.use(session({
   }
 }));
 
-
 app.use('/',pageRouter);
 app.use('/post/',postsRouter);
 app.use('/messages/',chatsRouter);
 app.use('/user/',userRouter);
 
+app.use((req, res, next) =>  {
+    var err = new Error('Page not found');
+    err.status = 404;
+    next(err);
+})
 
+// Handling errors (send them to the client)
+app.use((err, req, res, next) => {
+    res.status(err.status || 500);
+    res.send(err.message);
+});
+
+server.listen('3000',
+  () => console.log('running ..')
+);
 
 io.on('connection', socket => {
   console.log('connected');
+  //console.log(socket.id, "has joined");
   //broadcast.emit : all except client
   //emit : client
   //io.emit : all
+
+  socket.on("send_message", (data) => {
+    console.log('here');
+    let msg = new Message() ;
+    msg.create(data.content , data.sender , data.room , data.withImage , function(msg){
+        if(msg){
+          let notif = new MsgNotif();
+          notif.notify(req.session.user.id,data.room,data.content, function(ret){
+            if(ret == 200) socket.broadcast.emit("receive_message", data);
+            //else res.send(500);
+          });
+        }
+      });
+    })
+
   socket.on('chatMsg', msg => {
     user.find(msg[0] , function(ret){
       room = new Room();
@@ -80,21 +109,4 @@ io.on('connection', socket => {
 });
 
 
-app.use((req, res, next) =>  {
-    var err = new Error('Page not found');
-    err.status = 404;
-    next(err);
-})
-
-// Handling errors (send them to the client)
-app.use((err, req, res, next) => {
-    res.status(err.status || 500);
-    res.send(err.message);
-});
-
-server.listen('4100',
-  () => console.log('running ..')
-);
-
-
-module.exports = app ;
+module.exports = app,server ;

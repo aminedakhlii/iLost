@@ -19,21 +19,39 @@ MsgNotif.prototype = {
     let sql = 'select token, username from tokens,rooms,users where (rooms.id = ? and not tokens.user = ?) and (users.id = ?);'
     pool.query(sql, [room,sender,sender], function(err, result) {
       if(err) console.log(err);
+      console.log(this.sql);
       if(result){
         console.log(result);
         const notification_options = {
           priority: "high",
           timeToLive: 60 * 60 * 24
         };
-        const message_payload = {
+        let message_payload ;
+        if(message != '///img///')
+          message_payload = {
+            notification: {
+                title: result[0]['username'],
+                body: message,
+              },
+              data: {
+                username: result[0]['username'],
+                click_action: "FLUTTER_NOTIFICATION_CLICK",
+                sound: "default",
+                image: 'none',
+                screen: 'chatscreen',
+                room: room
+              }
+          };
+        else message_payload = {
           notification: {
               title: result[0]['username'],
-              body: message
+              body: message,
             },
             data: {
               username: result[0]['username'],
               click_action: "FLUTTER_NOTIFICATION_CLICK",
               sound: "default",
+              image: "imageicon",
               screen: 'chatscreen',
               room: room
             }

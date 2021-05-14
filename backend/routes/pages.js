@@ -50,10 +50,10 @@ router.post('/login' , (req,res,next) => {
       console.log('logged ' + result.username);
       req.session.user = result;
       req.session.opp = 1;
-      notif.create(req.body.token,req.session.user.id,(ret)=> {
+      /*notif.create(req.body.token,req.session.user.id,(ret)=> {
           if(ret) res.send({"id" : req.session.user.id}) ;
           else res.send(500);
-      });
+      });*/res.redirect('/chat')
       }
     else res.send(403) ;
   });

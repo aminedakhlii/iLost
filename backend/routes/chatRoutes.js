@@ -39,22 +39,16 @@ router.get('/updateChats' , async (req , res ) => {
     lastChatsLookup = new Date(lastChatsLookup).getTime() ;
     lastChatsUpdate = new Date(lastChatsUpdate).getTime() ;
 
-
     if(lastChatsLookup && lastChatsUpdate){
-
       if(lastChatsUpdate > lastChatsLookup){
         res.send('1') ;
         return ;
       }
-
       else
         res.send('0') ;
         return ;
-
     }
-
-
-    res.send('1') ;
+  res.send('1') ;
     return ;
   } else res.send(403) ;
 
@@ -138,7 +132,6 @@ router.post('/send' , (req , res) =>{
           if(ret == 200) res.send(200);
           else res.send(500);
         });
-
       }
       else res.send(500) ;
     });
