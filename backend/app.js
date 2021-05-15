@@ -14,8 +14,11 @@ const bodyParser = require('body-parser');
 const User = require('./core/user');
 const Message = require('./core/message');
 const Room = require('./core/room');
+const MsgNotif = require('./core/msgNotif');
 
 user = new User() ;
+message = new Message();
+notif = new MsgNotif();
 
 const app = express() ;
 const server = http.createServer(app) ;
@@ -36,15 +39,15 @@ app.use((req , res , next) => {
 app.set('views', path.join(__dirname,'views')) ;
 app.set('view engine', 'pug');
 
-
-app.use(session({
+var sessionMiddleware = session({
   secret:'<wvTWL.pn:L(WM_q"}uRXp9=uB^=g',
   resave: false,
   saveUninitialized: false,
   cookie : {
     maxAge : Date.now() + (30 * 86400 * 1000)
   }
-}));
+});
+app.use(sessionMiddleware);
 
 app.use('/',pageRouter);
 app.use('/post/',postsRouter);
@@ -67,44 +70,40 @@ server.listen('3000',
   () => console.log('running ..')
 );
 
+io.use((socket,next) => {
+  sessionMiddleware(socket.request,socket.request.res || {}, next);
+});
+
 io.on('connection', socket => {
   console.log('connected');
-  //console.log(socket.id, "has joined");
-  //broadcast.emit : all except client
-  //emit : client
-  //io.emit : all
+  notif.findUser(socket.handshake.query.key,(currentUser)=>{
+    if(currentUser){
+      currentUser = currentUser['user'];
+      let room = -1;
+      if(socket.handshake.query.room){
+        room = socket.handshake.query.room;
+        socket.join(room);
+      }
 
-  socket.on("send_message", (data) => {
-    console.log('here');
-    let msg = new Message() ;
-    msg.create(data.content , data.sender , data.room , data.withImage , function(msg){
-        if(msg){
-          let notif = new MsgNotif();
-          notif.notify(req.session.user.id,data.room,data.content, function(ret){
-            if(ret == 200) socket.broadcast.emit("receive_message", data);
-            //else res.send(500);
-          });
-        }
-      });
-    })
-
-  socket.on('chatMsg', msg => {
-    user.find(msg[0] , function(ret){
-      room = new Room();
-      message = new Message() ;
-      room.find(ret.id,18,function(result){
-
-          if(result)  {  message.create(msg[1],ret.id,1,function(result){
-                        console.log('sent');
-                        });
-                      }
-          else {
-            room.create(ret.id,16,function(result){
-
+      socket.on("sendMsg", (data) => {
+        console.log(currentUser);
+        if(data.sender == currentUser)
+          message.create(data.content , data.sender , data.room , data.hasImage , function(msg){
+              if(msg){
+                notif.notify(data.sender,data.room,data.content, function(ret){
+                  if(ret) socket.in(room).emit("receive", data);
+                  else socket.in(room).emit('error');
+                });
+              }
             });
-          }
-      });
-    });
+        });
+
+        socket.on('disconnect', function (data) {
+          console.log('leaving');
+          socket.leave(room);
+        });
+
+    }else socket.disconnect();
   });
 });
 

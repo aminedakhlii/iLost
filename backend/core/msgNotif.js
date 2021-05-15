@@ -16,11 +16,11 @@ MsgNotif.prototype = {
     });
   },
   notify: function(sender,room,message,callback){
-    let sql = 'select token, username from tokens,rooms,users where (rooms.id = ? and not tokens.user = ?) and (users.id = ?);'
-    pool.query(sql, [room,sender,sender], function(err, result) {
+    let sql = 'select token, username from tokens,rooms,users where (rooms.id = ?) and (users.id = rooms.user1 or users.id = rooms.user2) and (not users.id = ?) and (tokens.user = users.id);'
+    pool.query(sql, [room,sender], function(err, result) {
       if(err) console.log(err);
       console.log(this.sql);
-      if(result){
+      if(result && result.length>0){
         console.log(result);
         const notification_options = {
           priority: "high",
@@ -39,7 +39,7 @@ MsgNotif.prototype = {
                 sound: "default",
                 image: 'none',
                 screen: 'chatscreen',
-                room: room
+                room: room.toString()
               }
           };
         else message_payload = {
@@ -53,7 +53,7 @@ MsgNotif.prototype = {
               sound: "default",
               image: "imageicon",
               screen: 'chatscreen',
-              room: room
+              room: room.toString()
             }
         };
         let promises = [];
@@ -74,15 +74,30 @@ MsgNotif.prototype = {
         }
         Promise.all(promises).then(() =>{
           callback(callbacks) ;
-        });
+        }).catch((err) => callback(null));
+      }
+    });
+  },
+  findUser: function(token,callback){
+    let sql = 'select user from tokens where token = ?;'
+    pool.query(sql, token, function(err, result) {
+      if(err) {
+        //console.log(err);
+        callback(null);
+      }
+      else if(result.length) {
+          callback(result[0]);
+      }else{
+          callback(null);
       }
     });
   },
   delete: function(user,callback){
     let sql = `DELETE from tokens WHERE user = ?`;
     pool.query(sql, user, function(err, result) {
-      if(err) console.log(err);
-      else callback(result);
+      if(err) {console.log(err);}
+      if(result) callback(result);
+      else callback(null);
     });
   }
 }

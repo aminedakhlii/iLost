@@ -47,13 +47,12 @@ router.get('/home', (req, res, next) => {
 router.post('/login' , (req,res,next) => {
   user.login(req.body.username,req.body.password, function(result) {
     if(result) {
-      console.log('logged ' + result.username);
       req.session.user = result;
       req.session.opp = 1;
-      /*notif.create(req.body.token,req.session.user.id,(ret)=> {
+      notif.create(req.body.token,req.session.user.id,(ret)=> {
           if(ret) res.send({"id" : req.session.user.id}) ;
           else res.send(500);
-      });*/res.redirect('/chat')
+      });
       }
     else res.send(403) ;
   });
